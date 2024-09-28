@@ -94,7 +94,7 @@ gameStateView : Board.GameState -> Html Msg
 gameStateView state =
     case state of
         InProgress ->
-            text "Be careful, it's a dangerous world..."
+            text "Be careful..."
 
         GameOver _ ->
             div []
