@@ -1,0 +1,193 @@
+/* Basic styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.content {
+    text-align: center;
+}
+
+/* Styling the header */
+h1 {
+    margin-bottom: 20px;
+    font-size: 30px;
+    /* Slightly larger font size */
+    color: #555;
+    letter-spacing: 8px;
+    /* Space between the letters */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: lighter;
+    /* Monospace font */
+    text-transform: uppercase;
+    /* Uppercase styling for a cleaner look */
+}
+
+.minesweeper-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    /* 10 columns of 40px width */
+    grid-template-rows: repeat(10, 40px);
+    /* 10 rows of 40px height */
+    gap: 2px;
+    /* space between cells */
+    margin: 0 auto;
+}
+
+/* General cell styling */
+.cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    border: 1px solid #888;
+    background-color: #eee;
+}
+
+/* Hidden tile */
+.hidden {
+    background-color: #ddd;
+}
+
+/* Bomb tile */
+.bomb {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.exploded {
+    background-color: red;
+}
+
+.bomb::before {
+    content: "💣";
+    /* Using an emoji bomb icon */
+}
+
+
+.empty0::before {
+    content: "";
+}
+
+.empty1::before {
+    content: "1";
+}
+
+.empty2::before {
+    content: "2";
+}
+
+.empty3::before {
+    content: "3";
+}
+
+.empty4::before {
+    content: "4";
+}
+
+.empty5::before {
+    content: "5";
+}
+
+.empty6::before {
+    content: "6";
+}
+
+.empty7::before {
+    content: "7";
+}
+
+.empty8::before {
+    content: "8";
+}
+
+.empty9::before {
+    content: "9";
+}
+
+/* Hover effect for hidden cells */
+.hidden:hover {
+    background-color: #bbb;
+    color: #444;
+}
+
+.hidden:hover::before {
+    content: "?";
+}
+
+.play-again-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-container {
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hover effect for Play Again button */
+.play-again-btn:hover {
+    background-color: #45a049;
+}
+
+
+/* Responsive for mobile devices */
+@media (max-width: 600px) {
+    .minesweeper-grid {
+        grid-template-columns: repeat(10, 30px);
+        /* smaller cell size for mobile */
+        grid-template-rows: repeat(10, 30px);
+    }
+
+    .cell {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .bomb {
+        font-size: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+        /* Smaller font size for small screens */
+        letter-spacing: 4px;
+        /* Reduced letter spacing for smaller screens */
+    }
+
+}

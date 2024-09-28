@@ -68,13 +68,15 @@ updateBoard model updateFunc =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ case model.board of
-            Just board ->
-                Board.state board |> gameView
+    div [ class "container" ]
+        [ div [ class "content" ]
+            [ case model.board of
+                Just board ->
+                    Board.state board |> gameView
 
-            Nothing ->
-                text "No board yet..."
+                Nothing ->
+                    text "No board yet..."
+            ]
         ]
 
 
@@ -87,65 +89,85 @@ gameView state =
         ]
         [ gameStateView state.state
         , boardView state
+        , bottomPanel state
+        ]
+
+
+bottomPanel : Board.State -> Html Msg
+bottomPanel state =
+    let
+        display =
+            case state.state of
+                GameOver _ ->
+                    "inline-block"
+
+                Win ->
+                    "inline-block"
+
+                _ ->
+                    "none"
+    in
+    div [ class "button-container" ]
+        [ button
+            [ class "play-again-btn"
+            , style "display" display
+            , onClick PlayAgain
+            ]
+            [ text "Play again!" ]
         ]
 
 
 gameStateView : Board.GameState -> Html Msg
 gameStateView state =
-    case state of
-        InProgress ->
-            text "Be careful..."
-
-        GameOver _ ->
-            div []
-                [ text "Game over!   "
-                , button [ onClick PlayAgain ] [ text "Play again!" ]
-                ]
-
-        Win ->
-            div []
-                [ text "All mines cleared!!!   "
-                , button [ onClick PlayAgain ] [ text "Play again!" ]
-                ]
+    h1 [] [ text "Elm Minesweeper" ]
 
 
 boardView : Board.State -> Html Msg
 boardView state =
     div
-        [ style "display" "grid"
-        , style "grid-template-columns" ("repeat(" ++ String.fromInt state.width ++ ",50px)")
-        , style "grid-template-rows" ("repeat(" ++ String.fromInt state.height ++ ",50px)")
-        , style "gap" "5px"
-        ]
+        [ class "minesweeper-grid" ]
     <|
         List.map cellView state.cells
 
 
 cellView : Board.Cell -> Html Msg
 cellView cell =
+    -- <div class="cell empty c6" data-row="1"
+    -- data-col="1"></div>
     let
-        styles =
-            [ style "display" "flex"
-            , style "align-items" "center"
-            , style "justify-content" "center"
-            , style "font-size" "30px"
-            , style "border" "1px solid #000"
-            , style "width" "50px"
-            , style "height" "50px"
+        attrs =
+            [ Html.Attributes.attribute "data-col" (String.fromInt (Tuple.first cell.pos + 1))
+            , Html.Attributes.attribute "data-row" (String.fromInt (Tuple.second cell.pos + 1))
+            , class "cell"
             ]
     in
     case cell.celltype of
         Bomb ->
-            div styles [ text "💣" ]
+            div (attrs ++ [ class "bomb" ]) []
 
         BombExploded ->
-            div (styles ++ [ style "background-color" "red" ]) [ text "💣" ]
+            div (attrs ++ [ class "bomb", class "exploded" ]) []
 
         Empty n ->
-            div styles [ text (surroundingBombsText n) ]
+            div
+                (attrs
+                    ++ [ class ("empty" ++ String.fromInt n)
+                       ]
+                )
+                []
 
         Hidden ->
-            button (styles ++ [ onClick (CellClicked cell.pos) ]) [ text "" ]
+            div
+                (attrs
+                    ++ [ class "hidden"
+                       , onClick (CellClicked cell.pos)
+                       ]
+                )
+                []
+
+
+
+--        button (styles ++ [ onClick (CellClicked cell.pos) ]) [ text "" ]
 
 
 surroundingBombsText : Int -> String
