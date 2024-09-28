@@ -18,6 +18,7 @@ type alias Model =
 type Msg
     = BoardInitialized Board
     | CellClicked Pos
+    | PlayAgain
 
 
 main : Program () Model Msg
@@ -32,6 +33,11 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
+    startNewGame
+
+
+startNewGame : ( Model, Cmd Msg )
+startNewGame =
     ( { board = Nothing }
     , Board.init 10 10 10 BoardInitialized
     )
@@ -45,6 +51,9 @@ update msg model =
 
         CellClicked pos ->
             updateBoard model (Board.clickedCell pos)
+
+        PlayAgain ->
+            startNewGame
 
 
 updateBoard : Model -> (Board -> Board) -> ( Model, Cmd Msg )
@@ -88,10 +97,16 @@ gameStateView state =
             text "Be careful, it's a dangerous world..."
 
         GameOver _ ->
-            text "Game over!"
+            div []
+                [ text "Game over!   "
+                , button [ onClick PlayAgain ] [ text "Play again!" ]
+                ]
 
         Win ->
-            text "All mines cleared!!!"
+            div []
+                [ text "All mines cleared!!!   "
+                , button [ onClick PlayAgain ] [ text "Play again!" ]
+                ]
 
 
 boardView : Board.State -> Html Msg
