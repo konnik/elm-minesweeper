@@ -7,6 +7,7 @@ module Minesweeper exposing
     , State(..)
     , cellClicked
     , getCurrentBoard
+    , getDummyBoard
     , startNewGame
     )
 
@@ -26,9 +27,10 @@ type alias Game =
 
 
 type State
-    = InProgress
+    = NotStarted
+    | InProgress
     | GameOver Pos
-    | Win
+    | Winner
 
 
 type alias Pos =
@@ -57,13 +59,14 @@ type Celltype
     | Hidden
 
 
-startNewGame : Int -> Int -> Int -> (Game -> msg) -> Cmd msg
-startNewGame width height numBombs toMsg =
+startNewGame : Int -> Int -> Int -> Pos -> (Game -> msg) -> Cmd msg
+startNewGame width height numBombs firstClick toMsg =
     let
         numBombsClamped =
             max 0 (min (width * height) numBombs)
     in
     positions width height
+        |> List.filter (\pos -> pos /= firstClick)
         |> Random.List.shuffle
         |> Random.map (List.take numBombsClamped >> Set.fromList)
         |> Random.map
@@ -71,7 +74,7 @@ startNewGame width height numBombs toMsg =
                 { width = width
                 , height = height
                 , bombs = bombs
-                , visible = Set.empty
+                , visible = Set.singleton firstClick
                 , gameState = InProgress
                 }
             )
@@ -102,7 +105,7 @@ checkWin : Game -> Game
 checkWin board =
     if Set.size board.visible + Set.size board.bombs == board.width * board.height then
         { board
-            | gameState = Win
+            | gameState = Winner
             , visible = Set.fromList (positions board.width board.height)
         }
 
@@ -202,4 +205,15 @@ getCurrentBoard board =
     , height = board.height
     , cells = cells
     , state = board.gameState
+    }
+
+
+getDummyBoard : Int -> Int -> Board
+getDummyBoard width height =
+    { width = width
+    , height = height
+    , cells =
+        positions width height
+            |> List.indexedMap (\i p -> Cell i p Hidden)
+    , state = NotStarted
     }

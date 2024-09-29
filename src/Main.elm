@@ -12,7 +12,12 @@ import Set exposing (Set)
 
 
 type alias Model =
-    { game : Maybe Game }
+    { progress : GameState }
+
+
+type GameState
+    = WaitingForFirstClick Int Int Int
+    | Playing Game
 
 
 type Msg
@@ -38,44 +43,43 @@ init _ =
 
 startNewGame : ( Model, Cmd Msg )
 startNewGame =
-    ( { game = Nothing }
-    , Minesweeper.startNewGame 10 10 10 GameStarted
+    ( { progress = WaitingForFirstClick 10 10 10 }
+    , Cmd.none
     )
+
+
+
+-- Minesweeper.startNewGame width height bombs GameStarted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GameStarted newGame ->
-            ( { model | game = Just newGame }, Cmd.none )
+            ( { model | progress = Playing newGame }, Cmd.none )
 
         CellClicked pos ->
-            updateGame model (Minesweeper.cellClicked pos)
+            case model.progress of
+                WaitingForFirstClick w h b ->
+                    ( model, Minesweeper.startNewGame w h b pos GameStarted )
+
+                Playing game ->
+                    ( { model | progress = Playing (Minesweeper.cellClicked pos game) }, Cmd.none )
 
         PlayAgain ->
             startNewGame
-
-
-updateGame : Model -> (Game -> Game) -> ( Model, Cmd Msg )
-updateGame model updateFunc =
-    case model.game of
-        Just game ->
-            ( { model | game = Just (updateFunc game) }, Cmd.none )
-
-        Nothing ->
-            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
         [ div [ class "content" ]
-            [ case model.game of
-                Just game ->
+            [ case model.progress of
+                Playing game ->
                     Minesweeper.getCurrentBoard game |> gameView
 
-                Nothing ->
-                    text "No board yet..."
+                WaitingForFirstClick w h _ ->
+                    Minesweeper.getDummyBoard w h |> gameView
             ]
         ]
 
@@ -114,7 +118,7 @@ displayPlayAgain board =
         GameOver _ ->
             True
 
-        Win ->
+        Winner ->
             True
 
         _ ->
