@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class, height, style)
 import Html.Events exposing (onClick)
+import List.Extra exposing (groupsOf)
 import Minesweeper exposing (Board, Cell, Celltype(..), Game, Pos, State(..))
 import Random exposing (Generator)
 import Random.List exposing (shuffle)
@@ -96,19 +97,33 @@ gameView board =
 
 bottomPanelView : Board -> Html Msg
 bottomPanelView board =
-    div [ class "button-container" ]
-        [ button
-            [ class "play-again-btn"
-            , style "display"
+    div
+        [ class "button-container"
+        ]
+        [ div
+            [ style "display"
                 (if displayPlayAgain board then
                     "inline-block"
 
                  else
                     "none"
                 )
-            , onClick PlayAgain
             ]
-            [ text "Play again!" ]
+            [ case board.state of
+                Winner ->
+                    div [ class "result-win" ] [ text "SUCCESS!" ]
+
+                GameOver _ ->
+                    div [ class "result-loose" ] [ text "YOU LOOSE!" ]
+
+                _ ->
+                    div [ class "result-loose" ] [ text "-" ]
+            , button
+                [ class "play-again-btn"
+                , onClick PlayAgain
+                ]
+                [ text "Play again!" ]
+            ]
         ]
 
 
@@ -127,7 +142,7 @@ displayPlayAgain board =
 
 topPanelView : Html Msg
 topPanelView =
-    h1 [] [ text "Elm Minesweeper" ]
+    h1 [] [ text "MINESWEEPER" ]
 
 
 boardView : Board -> Html Msg

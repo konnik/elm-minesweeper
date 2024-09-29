@@ -29,10 +29,10 @@ body {
 /* Styling the header */
 h1 {
     margin-bottom: 20px;
-    font-size: 29px;
+    font-size: 35px;
     /* Slightly larger font size */
-    color: #aaa;
-    letter-spacing: 8px;
+    color: #ddd;
+    letter-spacing: 13px;
     /* Space between the letters */
     font-family: 'Courier New', Courier, monospace;
     font-weight: normal;
@@ -156,6 +156,25 @@ h1 {
     content: "?";
 }
 
+.result-win {
+    margin-top: 20px;
+    margin-bottom: 0px;
+    font-size: 29px;
+    color: #4CAF50;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+.result-loose {
+    margin-top: 20px;
+    margin-bottom: 0px;
+    font-size: 29px;
+    color: red;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+
+}
+
 .play-again-btn {
     margin-top: 20px;
     padding: 10px 20px;
@@ -169,8 +188,8 @@ h1 {
 }
 
 .button-container {
-    height: 60px;
-    display: flex;
+    height: 160px;
+    display: block;
     justify-content: center;
     align-items: center;
 }
@@ -248,7 +267,7 @@ h1 {
     h1 {
         font-size: 30px;
         /* Smaller font size for small screens */
-        letter-spacing: 4px;
+        letter-spacing: 8px;
         /* Reduced letter spacing for smaller screens */
     }
 
