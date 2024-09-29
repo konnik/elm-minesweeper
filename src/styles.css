@@ -180,18 +180,64 @@ h1 {
     background-color: #45a049;
 }
 
+@keyframes gameOverFlash {
+
+    0%,
+    100% {
+        background-color: red;
+    }
+
+    50% {
+        background-color: white;
+    }
+}
+
+@keyframes winnerFlash {
+
+    0%,
+    100% {
+        background-color: green;
+    }
+
+    50% {
+        background-color: white;
+    }
+}
+
+@keyframes fadeToWhite {
+    from {
+        background-color: red;
+    }
+
+    to {
+        background-color: white;
+    }
+}
+
+.gameOver {
+    animation-name: gameOverFlash;
+    animation-duration: 100ms;
+    animation-iteration-count: 5
+}
+
+.winner {
+    animation-name: winnerFlash;
+    animation-duration: 100ms;
+    animation-iteration-count: 5
+}
+
 
 /* Responsive for mobile devices */
 @media (max-width: 600px) {
     .minesweeper-grid {
-        grid-template-columns: repeat(10, 30px);
+        grid-template-columns: repeat(10, 32px);
         /* smaller cell size for mobile */
-        grid-template-rows: repeat(10, 30px);
+        grid-template-rows: repeat(10, 32px);
     }
 
     .cell {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         font-size: 12px;
     }
 
@@ -200,7 +246,7 @@ h1 {
     }
 
     h1 {
-        font-size: 24px;
+        font-size: 30px;
         /* Smaller font size for small screens */
         letter-spacing: 4px;
         /* Reduced letter spacing for smaller screens */

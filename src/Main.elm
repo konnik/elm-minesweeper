@@ -131,28 +131,40 @@ topPanelView =
 
 
 boardView : Board -> Html Msg
-boardView state =
-    div [ class "minesweeper-grid" ] (List.map cellView state.cells)
+boardView board =
+    div [ class "minesweeper-grid" ] (List.map (cellView board.state) board.cells)
 
 
-cellView : Minesweeper.Cell -> Html Msg
-cellView cell =
+cellView : State -> Minesweeper.Cell -> Html Msg
+cellView state cell =
     case cell.celltype of
         Bomb ->
-            divWith cell.pos [ class "bomb" ]
+            divWith state cell.pos [ class "bomb" ]
 
         BombExploded ->
-            divWith cell.pos [ class "bomb", class "exploded" ]
+            divWith state cell.pos [ class "bomb", class "exploded" ]
 
         Empty n ->
-            divWith cell.pos [ class ("empty" ++ String.fromInt n) ]
+            divWith state cell.pos [ class ("empty" ++ String.fromInt n) ]
 
         Hidden ->
-            divWith cell.pos [ class "hidden", onClick (CellClicked cell.pos) ]
+            divWith state cell.pos [ class "hidden", onClick (CellClicked cell.pos) ]
 
 
-divWith : Pos -> List (Html.Attribute Msg) -> Html Msg
-divWith ( x, y ) attrs =
+divWith : State -> Pos -> List (Html.Attribute Msg) -> Html Msg
+divWith state ( x, y ) attrs =
+    let
+        flashClass =
+            case state of
+                GameOver _ ->
+                    [ class "gameOver" ]
+
+                Winner ->
+                    [ class "winner" ]
+
+                _ ->
+                    []
+    in
     div
         (List.concat
             [ attrs
@@ -160,6 +172,7 @@ divWith ( x, y ) attrs =
               , Html.Attributes.attribute "data-row" (String.fromInt (y + 1))
               , class "cell"
               ]
+            , flashClass
             ]
         )
         []
