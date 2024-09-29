@@ -1,22 +1,22 @@
 module Main exposing (main)
 
-import Board exposing (Board, Cell, Celltype(..), GameState(..), Pos)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
+import Minesweeper exposing (Board, Cell, Celltype(..), Game, Pos, State(..))
 import Random exposing (Generator)
 import Random.List exposing (shuffle)
 import Set exposing (Set)
 
 
 type alias Model =
-    { board : Maybe Board }
+    { game : Maybe Game }
 
 
 type Msg
-    = BoardInitialized Board
+    = GameStarted Game
     | CellClicked Pos
     | PlayAgain
 
@@ -38,29 +38,29 @@ init _ =
 
 startNewGame : ( Model, Cmd Msg )
 startNewGame =
-    ( { board = Nothing }
-    , Board.init 10 10 10 BoardInitialized
+    ( { game = Nothing }
+    , Minesweeper.startNewGame 10 10 10 GameStarted
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        BoardInitialized newBoard ->
-            ( { model | board = Just newBoard }, Cmd.none )
+        GameStarted newGame ->
+            ( { model | game = Just newGame }, Cmd.none )
 
         CellClicked pos ->
-            updateBoard model (Board.clickedCell pos)
+            updateGame model (Minesweeper.cellClicked pos)
 
         PlayAgain ->
             startNewGame
 
 
-updateBoard : Model -> (Board -> Board) -> ( Model, Cmd Msg )
-updateBoard model updateFunc =
-    case model.board of
-        Just board ->
-            ( { model | board = Just (updateFunc board) }, Cmd.none )
+updateGame : Model -> (Game -> Game) -> ( Model, Cmd Msg )
+updateGame model updateFunc =
+    case model.game of
+        Just game ->
+            ( { model | game = Just (updateFunc game) }, Cmd.none )
 
         Nothing ->
             ( model, Cmd.none )
@@ -70,9 +70,9 @@ view : Model -> Html Msg
 view model =
     div [ class "container" ]
         [ div [ class "content" ]
-            [ case model.board of
-                Just board ->
-                    Board.state board |> gameView
+            [ case model.game of
+                Just game ->
+                    Minesweeper.getCurrentBoard game |> gameView
 
                 Nothing ->
                     text "No board yet..."
@@ -80,101 +80,82 @@ view model =
         ]
 
 
-gameView : Board.State -> Html Msg
-gameView state =
+gameView : Board -> Html Msg
+gameView board =
     div
-        [ style "align-items" "center"
-        , style "justify-content" "center"
-        , style "font-size" "30px"
-        ]
-        [ gameStateView state.state
-        , boardView state
-        , bottomPanel state
+        []
+        [ topPanelView
+        , boardView board
+        , bottomPanelView board
         ]
 
 
-bottomPanel : Board.State -> Html Msg
-bottomPanel state =
-    let
-        display =
-            case state.state of
-                GameOver _ ->
-                    "inline-block"
-
-                Win ->
-                    "inline-block"
-
-                _ ->
-                    "none"
-    in
+bottomPanelView : Board -> Html Msg
+bottomPanelView board =
     div [ class "button-container" ]
         [ button
             [ class "play-again-btn"
-            , style "display" display
+            , style "display"
+                (if displayPlayAgain board then
+                    "inline-block"
+
+                 else
+                    "none"
+                )
             , onClick PlayAgain
             ]
             [ text "Play again!" ]
         ]
 
 
-gameStateView : Board.GameState -> Html Msg
-gameStateView state =
+displayPlayAgain : Board -> Bool
+displayPlayAgain board =
+    case board.state of
+        GameOver _ ->
+            True
+
+        Win ->
+            True
+
+        _ ->
+            False
+
+
+topPanelView : Html Msg
+topPanelView =
     h1 [] [ text "Elm Minesweeper" ]
 
 
-boardView : Board.State -> Html Msg
+boardView : Board -> Html Msg
 boardView state =
-    div
-        [ class "minesweeper-grid" ]
-    <|
-        List.map cellView state.cells
+    div [ class "minesweeper-grid" ] (List.map cellView state.cells)
 
 
-cellView : Board.Cell -> Html Msg
+cellView : Minesweeper.Cell -> Html Msg
 cellView cell =
-    -- <div class="cell empty c6" data-row="1"
-    -- data-col="1"></div>
-    let
-        attrs =
-            [ Html.Attributes.attribute "data-col" (String.fromInt (Tuple.first cell.pos + 1))
-            , Html.Attributes.attribute "data-row" (String.fromInt (Tuple.second cell.pos + 1))
-            , class "cell"
-            ]
-    in
     case cell.celltype of
         Bomb ->
-            div (attrs ++ [ class "bomb" ]) []
+            divWith cell.pos [ class "bomb" ]
 
         BombExploded ->
-            div (attrs ++ [ class "bomb", class "exploded" ]) []
+            divWith cell.pos [ class "bomb", class "exploded" ]
 
         Empty n ->
-            div
-                (attrs
-                    ++ [ class ("empty" ++ String.fromInt n)
-                       ]
-                )
-                []
+            divWith cell.pos [ class ("empty" ++ String.fromInt n) ]
 
         Hidden ->
-            div
-                (attrs
-                    ++ [ class "hidden"
-                       , onClick (CellClicked cell.pos)
-                       ]
-                )
-                []
+            divWith cell.pos [ class "hidden", onClick (CellClicked cell.pos) ]
 
 
-
---        button (styles ++ [ onClick (CellClicked cell.pos) ]) [ text "" ]
-
-
-surroundingBombsText : Int -> String
-surroundingBombsText n =
-    case n of
-        0 ->
-            ""
-
-        _ ->
-            String.fromInt n
+divWith : Pos -> List (Html.Attribute Msg) -> Html Msg
+divWith ( x, y ) attrs =
+    div
+        (List.concat
+            [ attrs
+            , [ Html.Attributes.attribute "data-col" (String.fromInt (x + 1))
+              , Html.Attributes.attribute "data-row" (String.fromInt (y + 1))
+              , class "cell"
+              ]
+            ]
+        )
+        []

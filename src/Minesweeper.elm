@@ -1,13 +1,13 @@
-module Board exposing
+module Minesweeper exposing
     ( Board
     , Cell
     , Celltype(..)
-    , GameState(..)
+    , Game
     , Pos
-    , State
-    , clickedCell
-    , init
-    , state
+    , State(..)
+    , cellClicked
+    , getCurrentBoard
+    , startNewGame
     )
 
 import Random exposing (Generator)
@@ -16,16 +16,16 @@ import Set exposing (Set)
 import Task
 
 
-type alias Board =
+type alias Game =
     { width : Int
     , height : Int
     , bombs : Set Pos
     , visible : Set Pos
-    , gameState : GameState
+    , gameState : State
     }
 
 
-type GameState
+type State
     = InProgress
     | GameOver Pos
     | Win
@@ -35,11 +35,11 @@ type alias Pos =
     ( Int, Int )
 
 
-type alias State =
+type alias Board =
     { width : Int
     , height : Int
     , cells : List Cell
-    , state : GameState
+    , state : State
     }
 
 
@@ -57,8 +57,8 @@ type Celltype
     | Hidden
 
 
-init : Int -> Int -> Int -> (Board -> msg) -> Cmd msg
-init width height numBombs toMsg =
+startNewGame : Int -> Int -> Int -> (Game -> msg) -> Cmd msg
+startNewGame width height numBombs toMsg =
     let
         numBombsClamped =
             max 0 (min (width * height) numBombs)
@@ -84,8 +84,8 @@ positions width height =
         |> List.map (\i -> ( modBy width i, i // width ))
 
 
-clickedCell : Pos -> Board -> Board
-clickedCell pos board =
+cellClicked : Pos -> Game -> Game
+cellClicked pos board =
     case board.gameState of
         InProgress ->
             if isBomb board pos then
@@ -98,7 +98,7 @@ clickedCell pos board =
             board
 
 
-checkWin : Board -> Board
+checkWin : Game -> Game
 checkWin board =
     if Set.size board.visible + Set.size board.bombs == board.width * board.height then
         { board
@@ -110,7 +110,7 @@ checkWin board =
         board
 
 
-gameOver : Board -> Pos -> Board
+gameOver : Game -> Pos -> Game
 gameOver board pos =
     { board
         | gameState = GameOver pos
@@ -118,22 +118,22 @@ gameOver board pos =
     }
 
 
-reveal : Pos -> Board -> Board
+reveal : Pos -> Game -> Game
 reveal pos board =
     let
-        newBoard =
+        newGame =
             { board | visible = Set.insert pos board.visible }
     in
-    if isVisible board pos || not (insideBoard board pos) then
+    if isVisible board pos || not (insideGame board pos) then
         board
 
     else
         case adjacentBombs board pos of
             0 ->
-                Set.foldl reveal newBoard (adjacentCells pos)
+                Set.foldl reveal newGame (adjacentCells pos)
 
             _ ->
-                newBoard
+                newGame
 
 
 adjacentCells : Pos -> Set Pos
@@ -143,12 +143,12 @@ adjacentCells pos =
         |> Set.fromList
 
 
-insideBoard : Board -> Pos -> Bool
-insideBoard board ( x, y ) =
+insideGame : Game -> Pos -> Bool
+insideGame board ( x, y ) =
     x >= 0 && x < board.width && y >= 0 && y < board.height
 
 
-adjacentBombs : Board -> Pos -> Int
+adjacentBombs : Game -> Pos -> Int
 adjacentBombs board pos =
     Set.intersect (adjacentCells pos) board.bombs
         |> Set.size
@@ -159,18 +159,18 @@ offset ( x1, y1 ) ( x2, y2 ) =
     ( x1 + x2, y1 + y2 )
 
 
-isBomb : Board -> Pos -> Bool
+isBomb : Game -> Pos -> Bool
 isBomb board pos =
     Set.member pos board.bombs
 
 
-isVisible : Board -> Pos -> Bool
+isVisible : Game -> Pos -> Bool
 isVisible board pos =
     Set.member pos board.visible
 
 
-state : Board -> State
-state board =
+getCurrentBoard : Game -> Board
+getCurrentBoard board =
     let
         celltypeAt : Pos -> Celltype
         celltypeAt pos =
