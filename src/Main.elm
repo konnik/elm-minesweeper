@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, text)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, height, style)
 import Html.Events exposing (onClick)
 import Minesweeper exposing (Board, Cell, Celltype(..), Game, Pos, State(..))
 import Random exposing (Generator)
@@ -12,12 +12,11 @@ import Set exposing (Set)
 
 
 type alias Model =
-    { progress : GameState }
-
-
-type GameState
-    = WaitingForFirstClick Int Int Int
-    | Playing Game
+    { width : Int
+    , height : Int
+    , bombs : Int
+    , game : Maybe Game
+    }
 
 
 type Msg
@@ -38,48 +37,49 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    startNewGame
+    { width = 10
+    , height = 10
+    , bombs = 10
+    , game = Nothing
+    }
+        |> startNewGame
 
 
-startNewGame : ( Model, Cmd Msg )
-startNewGame =
-    ( { progress = WaitingForFirstClick 10 10 10 }
-    , Cmd.none
+startNewGame : Model -> ( Model, Cmd Msg )
+startNewGame model =
+    ( { model | game = Nothing }
+    , Minesweeper.startNewGame model.width model.height model.bombs GameStarted
     )
-
-
-
--- Minesweeper.startNewGame width height bombs GameStarted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GameStarted newGame ->
-            ( { model | progress = Playing newGame }, Cmd.none )
+            ( { model | game = Just newGame }, Cmd.none )
 
         CellClicked pos ->
-            case model.progress of
-                WaitingForFirstClick w h b ->
-                    ( model, Minesweeper.startNewGame w h b pos GameStarted )
+            case model.game of
+                Just game ->
+                    ( { model | game = Just (Minesweeper.cellClicked pos game) }, Cmd.none )
 
-                Playing game ->
-                    ( { model | progress = Playing (Minesweeper.cellClicked pos game) }, Cmd.none )
+                Nothing ->
+                    ( model, Cmd.none )
 
         PlayAgain ->
-            startNewGame
+            startNewGame model
 
 
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
         [ div [ class "content" ]
-            [ case model.progress of
-                Playing game ->
+            [ case model.game of
+                Just game ->
                     Minesweeper.getCurrentBoard game |> gameView
 
-                WaitingForFirstClick w h _ ->
-                    Minesweeper.getDummyBoard w h |> gameView
+                Nothing ->
+                    text "No game yet..."
             ]
         ]
 

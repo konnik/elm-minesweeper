@@ -7,7 +7,6 @@ module Minesweeper exposing
     , State(..)
     , cellClicked
     , getCurrentBoard
-    , getDummyBoard
     , startNewGame
     )
 
@@ -20,9 +19,12 @@ import Task
 type alias Game =
     { width : Int
     , height : Int
+    , numBombs : Int
+    , shuffledPositions : List Pos
     , bombs : Set Pos
     , visible : Set Pos
     , gameState : State
+    , clicks : Int
     }
 
 
@@ -59,23 +61,24 @@ type Celltype
     | Hidden
 
 
-startNewGame : Int -> Int -> Int -> Pos -> (Game -> msg) -> Cmd msg
-startNewGame width height numBombs firstClick toMsg =
+startNewGame : Int -> Int -> Int -> (Game -> msg) -> Cmd msg
+startNewGame width height numBombs toMsg =
     let
         numBombsClamped =
             max 0 (min (width * height) numBombs)
     in
     positions width height
-        |> List.filter (\pos -> pos /= firstClick)
         |> Random.List.shuffle
-        |> Random.map (List.take numBombsClamped >> Set.fromList)
         |> Random.map
-            (\bombs ->
+            (\shuffledPos ->
                 { width = width
                 , height = height
-                , bombs = bombs
-                , visible = Set.singleton firstClick
+                , bombs = Set.empty
+                , numBombs = numBombs
+                , visible = Set.empty
                 , gameState = InProgress
+                , clicks = 0
+                , shuffledPositions = shuffledPos
                 }
             )
         |> Random.generate toMsg
@@ -88,17 +91,40 @@ positions width height =
 
 
 cellClicked : Pos -> Game -> Game
-cellClicked pos board =
-    case board.gameState of
+cellClicked pos game =
+    case game.gameState of
         InProgress ->
-            if isBomb board pos then
-                gameOver board pos
-
-            else
-                reveal pos board |> checkWin
+            game
+                |> initBombsOnFirstClick pos
+                |> countClicks
+                |> winOrLoose pos
 
         _ ->
-            board
+            game
+
+
+winOrLoose : Pos -> Game -> Game
+winOrLoose pos game =
+    if isBomb game pos then
+        gameOver game pos
+
+    else
+        reveal pos game |> checkWin
+
+
+initBombsOnFirstClick : Pos -> Game -> Game
+initBombsOnFirstClick pos game =
+    case game.clicks of
+        0 ->
+            { game | bombs = game.shuffledPositions |> List.filter (\p -> p /= pos) |> List.take game.numBombs |> Set.fromList }
+
+        _ ->
+            game
+
+
+countClicks : Game -> Game
+countClicks game =
+    { game | clicks = game.clicks + 1 }
 
 
 checkWin : Game -> Game
@@ -205,15 +231,4 @@ getCurrentBoard board =
     , height = board.height
     , cells = cells
     , state = board.gameState
-    }
-
-
-getDummyBoard : Int -> Int -> Board
-getDummyBoard width height =
-    { width = width
-    , height = height
-    , cells =
-        positions width height
-            |> List.indexedMap (\i p -> Cell i p Hidden)
-    , state = NotStarted
     }
