@@ -6,7 +6,7 @@ import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class, height, style)
 import Html.Events exposing (onClick)
 import List.Extra exposing (groupsOf)
-import Minesweeper exposing (Board, Cell, Celltype(..), Game, Pos, State(..))
+import Minesweeper exposing (Board, Cell, Celltype(..), Game, Pos, Result(..), State(..))
 import Random exposing (Generator)
 import Random.List exposing (shuffle)
 import Set exposing (Set)
@@ -49,7 +49,12 @@ init _ =
 startNewGame : Model -> ( Model, Cmd Msg )
 startNewGame model =
     ( { model | game = Nothing }
-    , Minesweeper.startNewGame model.width model.height model.bombs GameStarted
+    , Minesweeper.start
+        { width = model.width
+        , height = model.height
+        , bombs = model.bombs
+        }
+        GameStarted
     )
 
 
@@ -62,7 +67,7 @@ update msg model =
         CellClicked pos ->
             case model.game of
                 Just game ->
-                    ( { model | game = Just (Minesweeper.cellClicked pos game) }, Cmd.none )
+                    ( { model | game = Just (Minesweeper.reveal pos game) }, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -77,7 +82,7 @@ view model =
         [ div [ class "content" ]
             [ case model.game of
                 Just game ->
-                    Minesweeper.getCurrentBoard game |> gameView
+                    Minesweeper.show game |> gameView
 
                 Nothing ->
                     text "No game yet..."
@@ -110,10 +115,10 @@ bottomPanelView board =
                 )
             ]
             [ case board.state of
-                Winner ->
+                Ended Winner ->
                     div [ class "result-win" ] [ text "SUCCESS!" ]
 
-                GameOver _ ->
+                Ended (Looser _) ->
                     div [ class "result-loose" ] [ text "YOU LOOSE!" ]
 
                 _ ->
@@ -130,10 +135,10 @@ bottomPanelView board =
 displayPlayAgain : Board -> Bool
 displayPlayAgain board =
     case board.state of
-        GameOver _ ->
+        Ended (Looser _) ->
             True
 
-        Winner ->
+        Ended Winner ->
             True
 
         _ ->
@@ -171,10 +176,10 @@ divWith state ( x, y ) attrs =
     let
         flashClass =
             case state of
-                GameOver _ ->
+                Ended (Looser _) ->
                     [ class "gameOver" ]
 
-                Winner ->
+                Ended Winner ->
                     [ class "winner" ]
 
                 _ ->
