@@ -29,8 +29,7 @@ type alias Game =
 
 
 type State
-    = NotStarted
-    | InProgress
+    = InProgress
     | GameOver Pos
     | Winner
 
@@ -74,7 +73,7 @@ startNewGame width height numBombs toMsg =
                 { width = width
                 , height = height
                 , bombs = Set.empty
-                , numBombs = numBombs
+                , numBombs = numBombsClamped
                 , visible = Set.empty
                 , gameState = InProgress
                 , clicks = 0
