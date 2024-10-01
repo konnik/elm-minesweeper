@@ -284,23 +284,22 @@ h1 {
         /* smaller cell size for mobile */
         grid-template-rows: repeat(10, 32px);
     }
-}
 
-.cell {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-}
+    .cell {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
 
-.bomb {
-    font-size: 20px;
-}
+    .bomb {
+        font-size: 20px;
+    }
 
-h1 {
-    font-size: 30px;
-    /* Smaller font size for small screens */
-    letter-spacing: 8px;
-    /* Reduced letter spacing for smaller screens */
-}
+    h1 {
+        font-size: 30px;
+        /* Smaller font size for small screens */
+        letter-spacing: 8px;
+        /* Reduced letter spacing for smaller screens */
+    }
 
 }
