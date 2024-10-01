@@ -242,7 +242,7 @@ checkWin game =
     in
     case ( game.gameState, allRevealed ) of
         ( InProgress, True ) ->
-            game |> endGameWithResult Winner
+            game |> revealAll |> endGameWithResult Winner
 
         _ ->
             game
