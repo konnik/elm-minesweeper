@@ -159,20 +159,24 @@ cellView : State -> Minesweeper.Cell -> Html Msg
 cellView state cell =
     case cell.celltype of
         Bomb ->
-            divWith state cell.pos [ class "bomb" ]
+            divWith state False cell.pos [ class "bomb" ]
 
         BombExploded ->
-            divWith state cell.pos [ class "bomb", class "exploded" ]
+            divWith state False cell.pos [ class "bomb", class "exploded" ]
 
-        Empty n ->
-            divWith state cell.pos [ class ("empty" ++ String.fromInt n) ]
+        Empty n revealed ->
+            divWith state
+                revealed
+                cell.pos
+                [ class ("empty" ++ String.fromInt n)
+                ]
 
         Hidden ->
-            divWith state cell.pos [ class "hidden", onClick (CellClicked cell.pos) ]
+            divWith state False cell.pos [ class "hidden", onClick (CellClicked cell.pos) ]
 
 
-divWith : State -> Pos -> List (Html.Attribute Msg) -> Html Msg
-divWith state ( x, y ) attrs =
+divWith : State -> Bool -> Pos -> List (Html.Attribute Msg) -> Html Msg
+divWith state revealed ( x, y ) attrs =
     let
         flashClass =
             case state of
@@ -184,6 +188,13 @@ divWith state ( x, y ) attrs =
 
                 _ ->
                     []
+
+        innerDivs =
+            if revealed then
+                [ div [ class "expand-fade-circle" ] [] ]
+
+            else
+                []
     in
     div
         (List.concat
@@ -195,4 +206,4 @@ divWith state ( x, y ) attrs =
             , flashClass
             ]
         )
-        []
+        innerDivs

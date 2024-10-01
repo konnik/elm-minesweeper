@@ -245,6 +245,37 @@ h1 {
     animation-iteration-count: 5
 }
 
+@keyframes expand-fade {
+    0% {
+        transform: scale(0.2);
+        border-width: 10px;
+        opacity: 1;
+    }
+
+    100% {
+        border-width: 1px;
+        transform: scale(2.3);
+        opacity: 0;
+        display: none;
+    }
+
+
+}
+
+.expand-fade-circle {
+    border: 20px solid green;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: transparent;
+    position: absolute;
+    top: 20;
+    left: 20;
+    /* transform: translate(-50%, -50%); */
+    animation: expand-fade 500ms ease-out forwards;
+    z-index: 10;
+    /* Keeps the circle behind the number */
+}
 
 /* Responsive for mobile devices */
 @media (max-width: 600px) {
@@ -253,22 +284,23 @@ h1 {
         /* smaller cell size for mobile */
         grid-template-rows: repeat(10, 32px);
     }
+}
 
-    .cell {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
+.cell {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
 
-    .bomb {
-        font-size: 20px;
-    }
+.bomb {
+    font-size: 20px;
+}
 
-    h1 {
-        font-size: 30px;
-        /* Smaller font size for small screens */
-        letter-spacing: 8px;
-        /* Reduced letter spacing for smaller screens */
-    }
+h1 {
+    font-size: 30px;
+    /* Smaller font size for small screens */
+    letter-spacing: 8px;
+    /* Reduced letter spacing for smaller screens */
+}
 
 }

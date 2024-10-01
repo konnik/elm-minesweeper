@@ -26,6 +26,7 @@ type alias Game =
     , visible : Set Pos
     , gameState : State
     , clicks : Int
+    , lastRevealedCell : Maybe Pos
     }
 
 
@@ -60,7 +61,7 @@ type alias Cell =
 type Celltype
     = Bomb
     | BombExploded
-    | Empty Int
+    | Empty Int Bool
     | Hidden
 
 
@@ -94,6 +95,7 @@ start { width, height, bombs } toMsg =
                 , gameState = InProgress
                 , clicks = 0
                 , shuffledPositions = shuffledPos
+                , lastRevealedCell = Nothing
                 }
             )
         |> Random.generate toMsg
@@ -112,6 +114,7 @@ reveal pos game =
             game
                 |> initBombsOnFirstClick pos
                 |> countClicks
+                |> tryReveal pos
                 |> winOrLoose pos
 
         _ ->
@@ -131,7 +134,7 @@ show board =
                     Hidden
 
                 ( True, False ) ->
-                    Empty (countAdjacentBombs board pos)
+                    Empty (countAdjacentBombs board pos) (board.lastRevealedCell == Just pos)
 
                 ( True, True ) ->
                     case board.gameState of
@@ -173,6 +176,16 @@ boardPositions { width, height } =
         |> List.map (\i -> ( modBy width i, i // width ))
 
 
+tryReveal : Pos -> Game -> Game
+tryReveal pos game =
+    if isRevealed game pos then
+        game
+
+    else
+        { game | lastRevealedCell = Just pos }
+            |> autoReveal pos
+
+
 {-| Checks if the game has ended.
 -}
 winOrLoose : Pos -> Game -> Game
@@ -183,7 +196,7 @@ winOrLoose pos game =
             |> endGameWithResult (Looser pos)
 
     else
-        autoReveal pos game |> checkWin
+        game |> checkWin
 
 
 {-| Checks if the this is the first click in the game.
